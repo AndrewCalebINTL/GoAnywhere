@@ -1,0 +1,300 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- WORLD (canvas) + pre-JS sunset fallback -->
+<div class="stage-fallback" id="stageFallback" aria-hidden="true"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+
+<!-- FIXED FX LAYERS (decorative) -->
+<div class="fx-scanlines" aria-hidden="true"></div>
+<div class="fx-vignette" aria-hidden="true"></div>
+<div class="fx-flicker" aria-hidden="true"></div>
+<canvas class="fx-drift" id="driftfx" width="160" height="90" aria-hidden="true"></canvas>
+<div class="fx-osdflash" id="osdflash" aria-hidden="true">Turbo</div>
+
+<!-- HUD (decorative tape chrome; live controls live on the dash) -->
+<div class="hud" aria-hidden="true">
+  <div class="tl osd"><span class="playglyph"></span>PLAY&nbsp;&nbsp;<span id="hudTrk">TRK 01</span> &middot; SIDE B</div>
+  <div class="tc osd">
+    <span class="route-name" id="routeStatus">WESTBOUND / THE CALL</span>
+    <span class="route-progress"><i id="routeFill"></i></span>
+  </div>
+  <div class="tr osd">SP &middot; <span id="hudCounter">0:00:00</span><br><span id="hudTime">21:47</span> LOCAL</div>
+</div>
+
+<!-- ROUTE RAIL: the tracklist -->
+<nav class="rail" aria-label="Tracklist">
+  <a href="#trk01" data-i="0" style="--acc:#ffcc00" class="active" aria-current="true"><span class="lbl">TRK 01 &middot; The Call</span></a>
+  <a href="#trk02" data-i="1" style="--acc:#00f2ff"><span class="lbl">TRK 02 &middot; The City</span></a>
+  <a href="#trk03" data-i="2" style="--acc:#ff6a00"><span class="lbl">TRK 03 &middot; The Deadline</span></a>
+  <a href="#trk04" data-i="3" style="--acc:#b026ff"><span class="lbl">TRK 04 &middot; The Signal</span></a>
+  <a href="#trk05" data-i="4" style="--acc:#ff00ff"><span class="lbl">TRK 05 &middot; Off-Map</span></a>
+  <a href="#trk06" data-i="5" style="--acc:#ffd91f"><span class="lbl">TRK 06 &middot; First Light</span></a>
+</nav>
+
+<!-- THE CAR: side view rides TRK 01–05, rear view owns the finale -->
+<div id="carLane" aria-hidden="true">
+  <div id="car">
+    <svg viewBox="-180 0 700 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="gRefl" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ff00ff"/>
+          <stop offset="100%" stop-color="#00f2ff"/>
+        </linearGradient>
+        <linearGradient id="gCone" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ffcc00" stop-opacity=".3"/>
+          <stop offset="100%" stop-color="#ffcc00" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="gStreak" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ff00ff" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#ff00ff" stop-opacity=".4"/>
+        </linearGradient>
+        <radialGradient id="gUg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00f2ff" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#00f2ff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse class="car-underglow" cx="186" cy="100" rx="172" ry="9" fill="url(#gUg)"/>
+      <polygon class="cone" points="348,52 520,36 520,84 350,66" fill="url(#gCone)"/>
+      <polygon points="-175,71 13,66 13,82 -175,77" fill="url(#gStreak)"/>
+      <line class="sl" x1="-24" y1="42" x2="-150" y2="42" stroke="#ffffff" stroke-width="2"/>
+      <line class="sl" x1="-10" y1="62" x2="-170" y2="62" stroke="#ffffff" stroke-width="2"/>
+      <line class="sl" x1="-30" y1="86" x2="-140" y2="86" stroke="#ffffff" stroke-width="2"/>
+      <path d="M12 50 L52 46 L52 51 L16 55 Z" fill="#d92525"/>
+      <line x1="12" y1="55" x2="52" y2="51" stroke="#ff00ff" stroke-width="1.5"/>
+      <rect x="20" y="53" width="4" height="9" fill="#8f1111"/>
+      <rect x="40" y="50" width="4" height="10" fill="#8f1111"/>
+      <path d="M14 88 L20 60 Q22 55 30 54 L96 47 L128 36 Q133 33 140 33 L216 33 L292 44 L348 64 Q358 68 359 78 L359 88 Q359 93 352 93 L22 93 Q14 93 14 88 Z" fill="#d92525"/>
+      <path d="M30 54 L96 47 L128 36 Q133 33 140 33 L216 33 L292 44" fill="none" stroke="#ff2975" stroke-width="1.6" opacity=".85"/>
+      <path d="M104 50 L130 39 L206 39 L206 50 Z" fill="#0b001a" stroke="#00f2ff" stroke-width="1"/>
+      <!-- the F40 wing, tail-side -->
+      <path d="M20 57 L30 55 L32 36 L22 36 Z" fill="#b31b1b"/>
+      <rect x="6" y="29" width="62" height="8" rx="2" fill="#c22020"/>
+      <line x1="8" y1="30.5" x2="66" y2="30.5" stroke="#ff2975" stroke-width="1.5"/>
+      <line x1="8" y1="36" x2="66" y2="36" stroke="#6e0d0d" stroke-width="1.6"/>
+      <rect x="18" y="78" width="338" height="6" rx="2" fill="url(#gRefl)" opacity=".7"/>
+      <rect x="324" y="52" width="22" height="9" rx="2" fill="#d92525" stroke="#8f1111" stroke-width="1"/>
+      <circle cx="341" cy="56.5" r="3.2" fill="#ffcc00"/>
+      <rect x="10" y="62" width="12" height="20" rx="3" fill="rgba(255,43,43,.35)"/>
+      <rect x="13" y="64" width="7" height="16" rx="2" fill="#ff2b2b"/>
+      <circle cx="84" cy="93" r="17" fill="#05000e" stroke="#2b003d" stroke-width="3.5"/>
+      <circle cx="288" cy="93" r="17" fill="#05000e" stroke="#2b003d" stroke-width="3.5"/>
+      <g transform="translate(84 93)"><g class="spokes" id="wRs">
+        <line x1="0" y1="0" x2="12" y2="0" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="3.7" y2="11.4" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="-9.7" y2="7.05" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="-9.7" y2="-7.05" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="3.7" y2="-11.4" stroke="#E9EDF5" stroke-width="1.6"/>
+        <circle cx="0" cy="0" r="4" fill="#9fb4d4"/>
+      </g></g>
+      <g transform="translate(288 93)"><g class="spokes" id="wFs">
+        <line x1="0" y1="0" x2="12" y2="0" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="3.7" y2="11.4" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="-9.7" y2="7.05" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="-9.7" y2="-7.05" stroke="#E9EDF5" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="3.7" y2="-11.4" stroke="#E9EDF5" stroke-width="1.6"/>
+        <circle cx="0" cy="0" r="4" fill="#9fb4d4"/>
+      </g></g>
+    </svg>
+    <div id="carHit"></div>
+  </div>
+
+  <!-- Rear view: the F40 shot from the Summer 1985 reference — red wedge,
+       full-width wing on end plates, louvred engine hatch, four round tail
+       lamps in a black mesh panel, triple center exhaust, glowing rims.
+       Backlit by the sun: pink rim-light on every top edge. -->
+  <div id="carRear">
+    <svg viewBox="0 0 300 175" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="gUg2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00f2ff" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#00f2ff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="gLamp" cx="50%" cy="42%" r="60%">
+          <stop offset="0%" stop-color="#ff6a4a"/>
+          <stop offset="45%" stop-color="#e01818"/>
+          <stop offset="100%" stop-color="#8f0d0d"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="150" cy="164" rx="132" ry="7" fill="rgba(0,0,0,.55)"/>
+      <ellipse class="car-underglow" cx="150" cy="160" rx="118" ry="7" fill="url(#gUg2)"/>
+      <!-- rear tires + glowing rims -->
+      <rect x="4" y="114" width="56" height="48" rx="10" fill="#05000e"/>
+      <rect x="240" y="114" width="56" height="48" rx="10" fill="#05000e"/>
+      <circle cx="30" cy="150" r="11" fill="#0a0a18" stroke="rgba(4,217,255,.55)" stroke-width="2"/>
+      <circle cx="270" cy="150" r="11" fill="#0a0a18" stroke="rgba(4,217,255,.55)" stroke-width="2"/>
+      <circle cx="30" cy="150" r="4" fill="#123" stroke="rgba(4,217,255,.35)" stroke-width="1.5"/>
+      <circle cx="270" cy="150" r="4" fill="#123" stroke="rgba(4,217,255,.35)" stroke-width="1.5"/>
+      <!-- fender cheeks + side vents -->
+      <path d="M24 126 L14 100 Q13 92 24 88 L28 88 L28 126 Z" fill="#b31b1b"/>
+      <path d="M276 126 L286 100 Q287 92 276 88 L272 88 L272 126 Z" fill="#b31b1b"/>
+      <g stroke="#5c0c0c" stroke-width="2">
+        <line x1="19" y1="104" x2="19" y2="118"/><line x1="23" y1="102" x2="23" y2="120"/>
+        <line x1="281" y1="104" x2="281" y2="118"/><line x1="277" y1="102" x2="277" y2="120"/>
+      </g>
+      <!-- valance + diffuser + triple exhaust -->
+      <rect x="22" y="140" width="256" height="18" rx="4" fill="#6e0d0d"/>
+      <circle cx="136" cy="149" r="5.5" fill="#0c0c14" stroke="#3a3a48" stroke-width="1.6"/>
+      <circle cx="150" cy="149" r="5.5" fill="#0c0c14" stroke="#3a3a48" stroke-width="1.6"/>
+      <circle cx="164" cy="149" r="5.5" fill="#0c0c14" stroke="#3a3a48" stroke-width="1.6"/>
+      <!-- bumper band -->
+      <rect x="18" y="124" width="264" height="20" rx="5" fill="#b31b1b"/>
+      <line x1="24" y1="125" x2="276" y2="125" stroke="#ff2975" stroke-width="1.4" opacity=".85"/>
+      <!-- tail panel: black mesh, four round lamps, the plate -->
+      <rect x="24" y="86" width="252" height="40" rx="5" fill="#0a0a10"/>
+      <g stroke="#1c1c26" stroke-width="1">
+        <line x1="28" y1="94" x2="272" y2="94"/><line x1="28" y1="101" x2="272" y2="101"/>
+        <line x1="28" y1="108" x2="272" y2="108"/><line x1="28" y1="115" x2="272" y2="115"/>
+      </g>
+      <g>
+        <circle cx="50" cy="106" r="14" fill="rgba(255,43,43,.28)"/>
+        <circle cx="80" cy="106" r="14" fill="rgba(255,43,43,.28)"/>
+        <circle cx="220" cy="106" r="14" fill="rgba(255,43,43,.28)"/>
+        <circle cx="250" cy="106" r="14" fill="rgba(255,43,43,.28)"/>
+        <circle cx="50" cy="106" r="10" fill="url(#gLamp)"/>
+        <circle cx="80" cy="106" r="10" fill="url(#gLamp)"/>
+        <circle cx="220" cy="106" r="10" fill="url(#gLamp)"/>
+        <circle cx="250" cy="106" r="10" fill="url(#gLamp)"/>
+        <circle cx="50" cy="106" r="10" fill="none" stroke="#2a0a0a" stroke-width="1.6"/>
+        <circle cx="80" cy="106" r="10" fill="none" stroke="#2a0a0a" stroke-width="1.6"/>
+        <circle cx="220" cy="106" r="10" fill="none" stroke="#2a0a0a" stroke-width="1.6"/>
+        <circle cx="250" cy="106" r="10" fill="none" stroke="#2a0a0a" stroke-width="1.6"/>
+      </g>
+      <rect x="131" y="96" width="38" height="18" rx="2" fill="#1a0b2e" stroke="rgba(255,204,0,.7)" stroke-width="1"/>
+      <text x="150" y="110" text-anchor="middle" font-family="'VT323','Courier New',monospace" font-size="12" fill="#ffcc00" letter-spacing="1">ACI-86</text>
+      <!-- deck shoulders -->
+      <path d="M28 86 L52 64 L248 64 L272 86 Z" fill="#a01515"/>
+      <line x1="52" y1="64" x2="248" y2="64" stroke="#ff2975" stroke-width="1.5" opacity=".9"/>
+      <!-- louvred engine hatch -->
+      <path d="M66 84 L88 50 L212 50 L234 84 Z" fill="#1b0710"/>
+      <g stroke="#05000e" stroke-width="3">
+        <line x1="82" y1="58" x2="218" y2="58"/>
+        <line x1="78" y1="65" x2="222" y2="65"/>
+        <line x1="74" y1="72" x2="226" y2="72"/>
+        <line x1="70" y1="79" x2="230" y2="79"/>
+      </g>
+      <!-- cabin roof, visible above the wing -->
+      <path d="M108 42 L122 31 L178 31 L192 42 L108 42 Z" fill="#7c1010"/>
+      <line x1="122" y1="31" x2="178" y2="31" stroke="#ff2975" stroke-width="1.4"/>
+      <!-- door mirrors -->
+      <line x1="72" y1="56" x2="58" y2="48" stroke="#7c1010" stroke-width="3"/>
+      <ellipse cx="54" cy="46" rx="7" ry="5" fill="#8f1111"/>
+      <line x1="228" y1="56" x2="242" y2="48" stroke="#7c1010" stroke-width="3"/>
+      <ellipse cx="246" cy="46" rx="7" ry="5" fill="#8f1111"/>
+      <!-- THE WING: end plates + full-width blade -->
+      <path d="M34 88 L48 88 L48 38 L34 44 Z" fill="#b31b1b"/>
+      <path d="M266 88 L252 88 L252 38 L266 44 Z" fill="#b31b1b"/>
+      <rect x="28" y="32" width="244" height="11" rx="3" fill="#c22020"/>
+      <line x1="32" y1="33.5" x2="268" y2="33.5" stroke="#ff2975" stroke-width="1.8"/>
+      <line x1="32" y1="42" x2="268" y2="42" stroke="#6e0d0d" stroke-width="2"/>
+    </svg>
+  </div>
+</div>
+
+<main id="main">
+<div id="track">
+
+<!-- ============ TRK 01 : THE CALL ============ -->
+<section class="scene scene-intro" id="trk01" data-trk="TRK 01" data-name="THE CALL" data-index="01" style="--acc:#ffcc00">
+  <div class="route-meta"><span>21:47 LOCAL</span><span>34.0522&deg; N</span><span>PRIORITY</span></div>
+  <p class="eyebrow">Andrew Caleb International Presents</p>
+  <h1 class="h1"><span class="chrome-text">NIGHT DRIVE</span></h1>
+  <p class="script">The Long Way West</p>
+  <div class="brief-card">
+    <span>INCOMING // UNKNOWN ORIGIN</span>
+    <strong>WEST. BEFORE SUNRISE.</strong>
+    <small>No address. No introduction. Just a signal leaving town.</small>
+  </div>
+  <button type="button" class="btn-play" id="playCue" aria-pressed="false" aria-label="Press play: the tape drives itself to the end">
+    <span class="tri" aria-hidden="true">&#9654;</span> Press Play &middot; Let It Drive
+  </button>
+  <p class="cue" aria-hidden="true">&#9660; or scroll to shift into drive</p>
+</section>
+
+<!-- ============ TRK 02 : THE CITY ============ -->
+<section class="scene scene-right" id="trk02" data-trk="TRK 02" data-name="THE CITY" data-index="02" style="--acc:#00f2ff">
+  <div class="route-meta"><span>22:13</span><span>11 MI WEST</span><span>NO RSVP</span></div>
+  <span class="trk-tab">TRK 02 &middot; The City</span>
+  <h2>Every Window Is a Maybe.</h2>
+  <p>The city is a thousand closed doors pretending to be walls. We pass every one. Tonight's only appointment is moving west.</p>
+  <div class="tags"><span>0 Invitations</span><span>1 Direction</span><span>Due West</span></div>
+</section>
+
+<!-- ============ TRK 03 : THE DEADLINE ============ -->
+<section class="scene" id="trk03" data-trk="TRK 03" data-name="THE DEADLINE" data-index="03" style="--acc:#ff6a00">
+  <div class="route-meta"><span>00:08</span><span>61 MI WEST</span><span>T&minus;05:50</span></div>
+  <span class="trk-tab">TRK 03 &middot; The Deadline</span>
+  <h2>The Brief Gets Shorter at Speed.</h2>
+  <p>By midnight, names disappear. Then landmarks. Then reasons. All that's left is a time, a direction, and the nerve to keep going.</p>
+  <div class="road-sign" aria-hidden="true"><b>WEST</b><span>NEXT EXIT: UNKNOWN</span></div>
+</section>
+
+<!-- ============ TRK 04 : THE SIGNAL ============ -->
+<section class="scene scene-right" id="trk04" data-trk="TRK 04" data-name="THE SIGNAL" data-index="04" style="--acc:#b026ff">
+  <div class="route-meta"><span>02:26</span><span>COAST HWY</span><span>CARRIER 99.9</span></div>
+  <span class="trk-tab">TRK 04 &middot; The Signal</span>
+  <h2>Then the Static Says Your Name.</h2>
+  <p>The city falls out of the mirror. The ocean takes its place. Somewhere between stations, the unknown voice comes back.</p>
+  <div class="signal-card">
+    <span class="signal-label">SIGNAL ACQUIRED // 02:26:14</span>
+    <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <strong>COME ALONE. FIRST LIGHT.</strong>
+  </div>
+</section>
+
+<!-- ============ TRK 05 : OFF-MAP ============ -->
+<section class="scene" id="trk05" data-trk="TRK 05" data-name="OFF-MAP" data-index="05" style="--acc:#ff00ff">
+  <div class="route-meta"><span>04:51</span><span>COORDINATES LOST</span><span>17 MI REMAIN</span></div>
+  <span class="trk-tab">TRK 05 &middot; Off-Map</span>
+  <h2>The Map Ends. The Network Begins.</h2>
+  <p>No road names. No bars. Full signal. Out here, the world stops being something you can search and becomes someone you have to know.</p>
+  <div class="tags"><span>No Service</span><span>Full Signal</span><span>Keep Going</span></div>
+</section>
+
+<!-- ============ TRK 06 : FIRST LIGHT ============ -->
+<section class="scene center" id="trk06" data-trk="TRK 06" data-name="FIRST LIGHT" data-index="06" style="--acc:#ffd91f">
+  <div class="route-meta"><span>05:58</span><span>FIRST LIGHT</span><span>LINE OPEN</span></div>
+  <span class="trk-tab">TRK 06 &middot; First Light</span>
+  <h2>Go Anywhere.<br>Meet Anyone.</h2>
+  <p>The sun was never the destination. The person waiting on the other side was.</p>
+  <p class="payoff">The world gets smaller when you know who to call.</p>
+</section>
+
+</div>
+
+<!-- ============ END CARD (after the tape runs out) ============ -->
+<section class="endcard" id="end">
+  <div class="tape-card">
+    <div class="strip"><span>Mission 001 &middot; Signal Complete</span><span>Recorded somewhere west of everything</span></div>
+    <div class="inner">
+      <p class="end-kicker">Andrew Caleb International</p>
+      <h2>The Line Is Open</h2>
+      <div class="lines">
+        <p>Every serious thing starts the same way: someone goes first.</p>
+        <p>Tell us where you're trying to get&mdash;or who you're trying to meet.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="mailto:contactandrewcalebintl@gmail.com">&#9679; Open a Line</a>
+        <button class="rewind" id="rewBtn">&#9664;&#9664; Rew &middot; Drive It Again</button>
+        <a class="btn btn-ghost" href="../">&#9654; Play Side A</a>
+      </div>
+    </div>
+  </div>
+  <p class="micro">ACI Master Tape 001 &middot; Side B &middot; One Signal &middot; Six Tracks &middot; Due West</p>
+  <p class="legal">&copy; 2026 Andrew Caleb International. Go anywhere. Meet anyone.</p>
+  <noscript><p class="legal">The drive itself needs JavaScript; the tape notes above read fine without it.</p></noscript>
+</section>
+</main>
+
+<!-- DASH (the only live controls: FX + radio) -->
+<div class="dash">
+  <div class="cluster">
+    <span class="osd speed" id="dashSpeed" aria-hidden="true">D &middot; <b>00</b> MPH</span>
+  </div>
+  <div class="cluster">
+    <span class="np" id="npTicker" hidden><span class="np-inner" id="npText"></span></span>
+    <button class="audio-btn" id="cruiseBtn" aria-pressed="false" aria-label="Auto drive: play the journey to the end">&#9654; Play</button>
+    <button class="audio-btn" id="fxBtn" aria-pressed="false" aria-label="Toggle visual effects">FX [On]</button>
+    <button class="audio-btn" id="audioBtn" aria-pressed="false" aria-label="Toggle radio: Night Drive FM, Skywave 99.9">FM 99.9 [Tune]</button>
+  </div>
+</div>
